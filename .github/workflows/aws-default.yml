@@ -53,6 +53,9 @@ jobs:
           aws cloudformation deploy  --template-file=template-export.yml --stack-name="${STACK_NAME}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamApiKey=${{ secrets.NETCUP_API_KEY }} ParamApiSecret=${{ secrets.NETCUP_API_SECRET }} ParamCustomer=${{ secrets.NETCUP_API_CUSTOMER }}
           export ENDPOINT=$(aws cloudformation describe-stacks --stack-name="${STACK_NAME}" | jq -r '.Stacks | .[0] | .Outputs[] | select(.OutputKey=="LambdaEndpoint") | .OutputValue')
           echo "::set-env name=ENDPOINT::${ENDPOINT}"
+      - name: Verify
+        run: |
+          echo Using endpoint ${ENDPOINT}
   delete:
     name: Delete old stack
     runs-on: ubuntu-18.04
