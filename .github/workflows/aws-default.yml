@@ -50,7 +50,7 @@ jobs:
           chmod +x prepare_template.sh
           ./prepare_template.sh
           aws cloudformation package --template aws-resources.yml --s3-bucket $S3_BUCKET --s3-prefix event2calendar --output-template template-export.yml
-          aws cloudformation deploy  --template-file=template-export.yml --stack-name="${STACK_NAME}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamApiKey=${{ secrets.NETCUP_API_KEY }} ParamApiSecret=${{ secrets.NETCUP_API_SECRET }} ParamApiCustomer=${{ secrets.NETCUP_API_CUSTOMER }}
+          aws cloudformation deploy  --template-file=template-export.yml --stack-name="${STACK_NAME}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamApiKey=${{ secrets.NETCUP_API_KEY }} ParamApiSecret=${{ secrets.NETCUP_API_SECRET }} ParamCustomer=${{ secrets.NETCUP_API_CUSTOMER }}
           export ENDPOINT=$(aws cloudformation describe-stacks --stack-name="${STACK_NAME}" | jq -r '.Stacks | .[0] | .Outputs[] | select(.OutputKey=="LambdaEndpoint") | .OutputValue')
           echo "::set-env name=ENDPOINT::${ENDPOINT}"
   delete:
