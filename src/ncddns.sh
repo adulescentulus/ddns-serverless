@@ -2,7 +2,6 @@ APILIB=ncdapi.sh
 
 loadLib() {
     # Initialization
-    set +e
     SOURCE_RESPONSE="$(mktemp)"
     source $LAMBDA_TASK_ROOT/$APILIB > $SOURCE_RESPONSE 2>&1
     if [[ $? -eq "0" ]]; then
@@ -31,18 +30,18 @@ handler () {
     EVENT_JSON=$(echo $EVENT_DATA | jq .)
 
 	EVENT_PATH=$(echo $EVENT_DATA | jq -r '.path')
-	DDNSHOST=$(echo ${EVENT_PATH} | sed -n 's#/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
-	echo using host $DDNSHOST
+    DDNS_HOST=$(echo ${EVENT_PATH} | sed -n 's#/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
+	echo using host $DDNS_HOST
+	DDNS_ID=$(echo ${EVENT_PATH} | sed -n 's#/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\2#p')
+	echo using host id $DDNS_ID
     if [ $debug = true ]; then
-	    getRecords "networkchallenge.de" | jq -r --arg DDNSHOST "$DDNSHOST" '.[] | select(.hostname==$DDNSHOST) | .id'
+	    getRecords "networkchallenge.de" | jq -r --arg DDNS_ID "$DDNS_ID" '.[] | select(.id==$DDNS_ID)'
 	fi
-    DDNSID=$(getRecords "networkchallenge.de" | jq -r --arg DDNSHOST "$DDNSHOST" '.[] | select(.hostname==$DDNSHOST) | .id')
-
-	echo using id $DDNSID
-	[[ -z $DDNSID ]] && exit 1
-	DDNSIP=$(echo ${EVENT_PATH} | sed -n 's#/host/.*/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
-	[[ -z $DDNSIP ]] && exit 1
-	modRecord $DDNSID $DDNSHOST networkchallenge.de A $DDNSIP
+    
+	[[ -z $DDNS_ID ]] && exit 1
+	DDNS_IP=$(echo ${EVENT_PATH} | sed -n 's#/host/.*/id/[0-9]\+/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
+	[[ -z $DDNS_IP ]] && exit 1
+	modRecord $DDNS_ID $DDNS_HOST networkchallenge.de A $DDNS_IP
 
     # This is the return value because it's being sent to stderr (>&2)
     echo "{\"statusCode\": 200}" >&2

@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters: 
+  ParamApiKey: 
+    Type: String
+    Description: netcup API key
+  ParamApiSecret: 
+    Type: String
+    Description: netcup API key secret
+  ParamCustomer: 
+    Type: String
+    Description: netcup customer id
+
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionUri: ./api.yml
+      StageName: prod
+      Variables:
+        LambdaFunctionName: !Ref DdnsServiceFunction
+
+  DdnsServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ncddns.handler
+      Runtime: provided
+      CodeUri: ../target/function.zip
+      Layers:
+      - arn:aws:lambda:eu-central-1:744348701589:layer:bash:8
+      MemorySize: 128
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 15
+      Environment:
+        Variables:
+          VERBOSE: false
+          apikey: 
+            Ref: ParamApiKey
+          apipw: 
+            Ref: ParamApiSecret
+          cid: 
+            Ref: ParamCustomer
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+
+  DdnsServiceFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DdnsServiceFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*
+
+Outputs:
+  LambdaEndpoint:
+    Description: API Gateway URL of the Lambda Function
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod/"
