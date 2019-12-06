@@ -16,10 +16,6 @@ Parameters:
   ParamCustomDomain: 
     Type: String
     Description: custom domain name for API
-  ParamApiName: 
-    Type: String
-    Description: name of this API
-    Default: ddnsprodapi
 
 Resources:
   Api:
@@ -27,8 +23,6 @@ Resources:
     Properties:
       DefinitionUri: ./api.yml
       StageName: prod
-      Name:
-        Ref: ParamApiName
       Variables:
         LambdaFunctionName: !Ref DdnsServiceFunction
 
@@ -44,8 +38,7 @@ Resources:
     Properties:
       BasePath: api
       DomainName: !Ref DdnsDomain
-      RestApiId: 
-        Ref: ParamApiName
+      RestApiId: !Ref Api
       Stage: prod
 
   DdnsServiceFunction:
