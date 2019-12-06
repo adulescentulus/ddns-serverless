@@ -26,6 +26,39 @@ Resources:
       Variables:
         LambdaFunctionName: !Ref DdnsServiceFunction
 
+  Api:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Body:
+        swagger: 2.0
+        info:
+          title: !Ref AWS::StackName
+        paths:
+          "/{proxy+}":
+            x-amazon-apigateway-any-method:
+              produces:
+                - application/json
+              parameters:
+                - name: proxy
+                  in: path
+                  required: true
+                  type: string
+              responses: {}
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: '200'
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DdnsServiceFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: POST
+                cacheNamespace: roq9wj
+                cacheKeyParameters:
+                  - method.request.path.proxy
+                type: aws_proxy
+      Description: A test API
+      Name: !Ref AWS::StackName
+
   DdnsDomain:
     Type: AWS::ApiGateway::DomainName
     Properties: 
