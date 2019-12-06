@@ -13,6 +13,9 @@ Parameters:
   ParamCustomer: 
     Type: String
     Description: netcup customer id
+  ParamCustomDomain: 
+    Type: String
+    Description: custom domain name for API
 
 Resources:
   Api:
@@ -22,6 +25,21 @@ Resources:
       StageName: prod
       Variables:
         LambdaFunctionName: !Ref DdnsServiceFunction
+
+  DdnsDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties: 
+      CertificateArn: arn:aws:acm:us-east-1:840940990295:certificate/3dd20275-c16a-48f2-b141-d9a47eb1625f
+      DomainName: 
+        Ref: ParamCustomDomain
+
+  PathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      BasePath: api
+      DomainName: !Ref DdnsDomain
+      RestApiId: !Ref Api
+      Stage: prod
 
   DdnsServiceFunction:
     Type: AWS::Serverless::Function
