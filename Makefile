@@ -2,15 +2,12 @@ SHELL = /usr/bin/env bash -xe
 
 PWD := $(shell pwd)
 
-build: lib/ncdapi.sh
+build:
 	@rm -rf target
 	@mkdir target
-	@cp lib/ncdapi.sh ./target/
+	@cp lib/cf-ddns.sh ./target/
 	@cp src/ncddns.sh ./target/
-	@cd target && zip function.zip ncdapi.sh ncddns.sh && cd -
-
-lib/ncdapi.sh:
-	@curl -L -o lib/ncdapi.sh https://github.com/adulescentulus/ncdapi/raw/master/ncdapi.sh
+	@cd target && zip function.zip cf-ddns.sh ncddns.sh && cd -
 
 publish:
 	@$(PWD)/publish.sh
