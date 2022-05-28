@@ -18,3 +18,5 @@ Resources:
       DomainValidationOptions:
         - DomainName:
             Ref: ParamDomainName
+          ValidationDomain:
+            Ref: ParamDomainName
