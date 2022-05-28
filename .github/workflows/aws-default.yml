@@ -46,7 +46,7 @@ jobs:
         run: |
           echo using STACK_NAME ${{ env.STACK_NAME }}
           aws cloudformation package --template aws-base.yml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-base-export.yml
-          aws cloudformation deploy  --template-file=template-export.yml --stack-name="${{ env.STACK_NAME }}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamDomainName=${{ secrets.AWS_API_DOMAINNAME}} ParamCertArn=${{ secrets.AWS_CERT_ARN}}
+          aws cloudformation deploy  --template-file=template-base-export.yml --stack-name="${{ env.STACK_NAME }}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamDomainName=${{ secrets.AWS_API_DOMAINNAME}} ParamCertArn=${{ secrets.AWS_CERT_ARN}}
   
   deploy:
     name: Deploy
