@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters: 
+  ParamDomainName: 
+    Type: String
+    Description: Registered API Domain Name
+  
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName:
+        Ref: ParamDomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName:
+            Ref: ParamDomainName

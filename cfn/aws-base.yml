@@ -7,21 +7,14 @@ Parameters:
   ParamDomainName: 
     Type: String
     Description: Registered API Domain Name
+  ParamCertArn: 
+    Type: String
+    Description: us-east-1 cert ARN arn:aws:acm:us-east-1:ACCOUNT:certificate/cert
   
 Resources:
   DdnsDomain:
     Type: AWS::ApiGateway::DomainName
     Properties: 
-      CertificateArn:
-        Ref: Certificate
+      CertificateArn: !Ref ParamCertArn
       DomainName: 
         Ref: ParamDomainName
-  Certificate:
-    Type: AWS::CertificateManager::Certificate
-    Properties:
-      DomainName:
-        Ref: ParamDomainName
-      ValidationMethod: DNS
-      DomainValidationOptions:
-        - DomainName:
-            Ref: ParamDomainName
