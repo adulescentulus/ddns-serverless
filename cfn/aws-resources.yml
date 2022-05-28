@@ -4,32 +4,21 @@ Transform:
 - AWS::Serverless-2016-10-31
 
 Parameters: 
-  ParamApiKey: 
+  ParamDomainName: 
     Type: String
-    Description: netcup API key
-  ParamApiSecret: 
+    Description: Registered API Domain Name
+  ParamBaseName: 
     Type: String
-    Description: netcup API key secret
-  ParamCustomer: 
+    Description: Used as the API Base Path
+  ParamApiToken: 
     Type: String
-    Description: netcup customer id
-  ParamCustomDomain: 
-    Type: String
-    Description: custom domain name for API
+    Description: Cloudflare API Token
 
 Resources:
   Api:
     Type: AWS::Serverless::Api
     Properties:
-      DefinitionUri: ./api.yml
-      StageName: prod
-      Variables:
-        LambdaFunctionName: !Ref DdnsServiceFunction
-
-  Api:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Body:
+      DefinitionBody:
         swagger: 2.0
         info:
           title: !Ref AWS::StackName
@@ -56,23 +45,17 @@ Resources:
                 cacheKeyParameters:
                   - method.request.path.proxy
                 type: aws_proxy
-      Description: A test API
-      Name: !Ref AWS::StackName
-
-  DdnsDomain:
-    Type: AWS::ApiGateway::DomainName
-    Properties: 
-      CertificateArn: arn:aws:acm:us-east-1:840940990295:certificate/3dd20275-c16a-48f2-b141-d9a47eb1625f
-      DomainName: 
-        Ref: ParamCustomDomain
+      StageName: prod
+      Variables:
+        LambdaFunctionName: !Ref DdnsServiceFunction
 
   PathMapping:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
-      BasePath: api
-      DomainName: !Ref DdnsDomain
+      BasePath: !Ref ParamBaseName
+      DomainName: !Ref ParamDomainName
       RestApiId: !Ref Api
-      Stage: prod
+      Stage: !Ref Api.Stage
 
   DdnsServiceFunction:
     Type: AWS::Serverless::Function
@@ -88,18 +71,10 @@ Resources:
       Environment:
         Variables:
           VERBOSE: false
-          apikey: 
-            Ref: ParamApiKey
-          apipw: 
-            Ref: ParamApiSecret
-          cid: 
-            Ref: ParamCustomer
-      Events:
-        GetResource:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: any
+          api_token: 
+            Ref: ParamApiToken
+      FunctionUrlConfig:
+        AuthType: NONE
 
   DdnsServiceFunctionPermission:
     Type: AWS::Lambda::Permission

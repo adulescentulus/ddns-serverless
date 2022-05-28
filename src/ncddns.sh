@@ -1,4 +1,4 @@
-APILIB=ncdapi.sh
+APILIB=cf-ddns.sh
 
 loadLib() {
     # Initialization
@@ -30,18 +30,14 @@ handler () {
     EVENT_JSON=$(echo $EVENT_DATA | jq .)
 
 	EVENT_PATH=$(echo $EVENT_DATA | jq -r '.path')
-    DDNS_HOST=$(echo ${EVENT_PATH} | sed -n 's#\(/api\)\{0,1\}/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\2#p')
+    DDNS_HOST=$(echo ${EVENT_PATH} | sed -n 's#/[[:alnum:]_-]\+/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
 	echo using host $DDNS_HOST
-	DDNS_ID=$(echo ${EVENT_PATH} | sed -n 's#\(/api\)\{0,1\}/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\3#p')
+	DDNS_ID=$(echo ${EVENT_PATH} | sed -n 's#/[[:alnum:]_-]\+/host/\([0-9A-Za-z]*\.ddns\)\.networkchallenge\.de/id/\([0-9]\+\)/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\2#p')
 	echo using host id $DDNS_ID
-    if [ $debug = true ]; then
-	    getRecords "networkchallenge.de" | jq -r --arg DDNS_ID "$DDNS_ID" '.[] | select(.id==$DDNS_ID)'
-	fi
     
-	[[ -z $DDNS_ID ]] && exit 1
-	DDNS_IP=$(echo ${EVENT_PATH} | sed -n 's#\(/api\)\{0,1\}/host/.*/id/[0-9]\+/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\2#p')
+	DDNS_IP=$(echo ${EVENT_PATH} | sed -n 's#/[[:alnum:]_-]\+/host/.*/id/[0-9]\+/ip/\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)#\1#p')
 	[[ -z $DDNS_IP ]] && exit 1
-	modRecord $DDNS_ID $DDNS_HOST networkchallenge.de A $DDNS_IP
+	update networkchallenge.de $DDNS_HOST $DDNS_IP
 
     # This is the return value because it's being sent to stderr (>&2)
     echo "{\"statusCode\": 200}" >&2
