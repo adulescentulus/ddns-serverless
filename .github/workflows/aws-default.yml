@@ -9,10 +9,39 @@ on:
 name: Deploy to AWS Lambda
 
 jobs:
+  infra:
+    name: Infra setup
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'push'  && github.ref_name == 'master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Define slug variables
+        uses: rlespinasse/github-slug-action@v4
+      - name: Deploy
+        id: deploy
+        env:
+          S3_BUCKET: nc-projects-infrabucket
+          STACK_NAME: ${{ env.GITHUB_REPOSITORY_NAME_PART }}
+        working-directory: ./cfn
+        run: |
+          echo using STACK_NAME ${{ env.STACK_NAME }}
+          aws cloudformation package --template aws-base.yml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-base-export.yml
+          aws cloudformation deploy  --template-file=template-base-export.yml --stack-name="${{ env.STACK_NAME }}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamDomainName=${{ secrets.AWS_API_DOMAINNAME}}
+  
   deploy:
     name: Deploy
     runs-on: ubuntu-20.04
     if: github.event_name == 'push'
+    needs: infra
 
     steps:
       - name: Checkout
