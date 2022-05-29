@@ -20,3 +20,8 @@ Resources:
             Ref: ParamDomainName
           ValidationDomain:
             Ref: ParamDomainName
+
+Outputs:
+  CertArn:
+    Description: The certificate's ARN
+    Value: !Ref Certificate
