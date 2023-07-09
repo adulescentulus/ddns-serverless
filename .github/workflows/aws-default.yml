@@ -54,7 +54,7 @@ jobs:
         run: |
           echo using STACK_NAME ${{ env.STACK_NAME }}
           sam build -t aws-resources.yml
-          aws cloudformation package --template ../.aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-export.yml
+          aws cloudformation package --template .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-export.yml
           aws cloudformation deploy  --template-file=template-export.yml --stack-name="${{ env.STACK_NAME }}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamApiToken=${{ secrets.CF_API_TOKEN }} ParamDomainName=${{ secrets.AWS_API_DOMAINNAME}} ParamBaseName=${{ env.API_BASENAME }}
           export ENDPOINT=$(aws cloudformation describe-stacks --stack-name="${{ env.STACK_NAME }}" | jq -r '.Stacks | .[0] | .Outputs[] | select(.OutputKey=="LambdaEndpoint") | .OutputValue')
           echo "ENDPOINT=${ENDPOINT}" >> $GITHUB_ENV
