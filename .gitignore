@@ -1,3 +1,4 @@
 target/
 .DS_Store
 cfn/template-export.yml
+.aws-sam

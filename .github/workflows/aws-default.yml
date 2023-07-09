@@ -16,19 +16,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
-
-      - name: Make
-        id: package
-        run: |
-          make
 
       - name: Define slug variables
         uses: rlespinasse/github-slug-action@v4
@@ -55,7 +53,8 @@ jobs:
         working-directory: ./cfn
         run: |
           echo using STACK_NAME ${{ env.STACK_NAME }}
-          aws cloudformation package --template aws-resources.yml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-export.yml
+          sam build -t aws-resources.yml
+          aws cloudformation package --template .aws-sam/build/template.yaml --s3-bucket $S3_BUCKET --s3-prefix ${{ env.GITHUB_REPOSITORY_NAME_PART }} --output-template template-export.yml
           aws cloudformation deploy  --template-file=template-export.yml --stack-name="${{ env.STACK_NAME }}" --capabilities=CAPABILITY_NAMED_IAM --parameter-overrides ParamApiToken=${{ secrets.CF_API_TOKEN }} ParamDomainName=${{ secrets.AWS_API_DOMAINNAME}} ParamBaseName=${{ env.API_BASENAME }}
           export ENDPOINT=$(aws cloudformation describe-stacks --stack-name="${{ env.STACK_NAME }}" | jq -r '.Stacks | .[0] | .Outputs[] | select(.OutputKey=="LambdaEndpoint") | .OutputValue')
           echo "ENDPOINT=${ENDPOINT}" >> $GITHUB_ENV

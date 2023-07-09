@@ -60,18 +60,16 @@ Resources:
   DdnsServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: ncddns.handler
-      Runtime: provided
-      CodeUri: ../target/function.zip
-      Layers:
-      - arn:aws:lambda:eu-central-1:744348701589:layer:bash:8
+      Handler: updater.lambda_handler
+      Runtime: python3.9
+      CodeUri: ../src
       MemorySize: 128
       Policies: AWSLambdaBasicExecutionRole
       Timeout: 15
       Environment:
         Variables:
           VERBOSE: false
-          api_token: 
+          CLOUDFLARE_API_TOKEN: 
             Ref: ParamApiToken
       FunctionUrlConfig:
         AuthType: NONE
